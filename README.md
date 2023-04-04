@@ -69,6 +69,7 @@ Useful arguments:
 [--dropout_node]      # Randomly dropout a portion of nodes in the value vector generation network during training [0]
 ```
 
+<!--
 ## Testing and generating detection maps from WSI
 ### TCGA dataset
 >Download some testing slides:  
@@ -95,6 +96,7 @@ Useful arguments:
   $ python test_crop_single.py --dataset=c16
   $ python testing_c16.py
 ```
+-->
 
 ## Processing raw WSI data
 If you are processing WSI from raw images, you will need to download the WSIs first.
