@@ -1,12 +1,15 @@
 numpy
 pillow
 pip
-python
 matplotlib
 scikit-learn
 pyyaml
 pandas
 scikit-image
 jupyterlab
-opencv
+opencv-python
 tqdm
+torch
+torchvision
+torchaudio
+openslide-python

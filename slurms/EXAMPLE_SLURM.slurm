@@ -1,16 +1,15 @@
 #!/bin/bash
-#SBATCH --partition=gpu
-#SBATCH --gres=gpu:a100:2
+#SBATCH --account=ajiteshs_1045
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=16
-#SBATCH --time=12:00:00
+#SBATCH --cpus-per-task=1
+#SBATCH --time=24:00:00
 
 # Change to proper directory
-if [[ "$PWD" =~ "RL4LMs/slurms" ]]
+if [[ "$PWD" =~ "EE-638-WSI-Project/slurms" ]]
 then 
     cd ..
 else
-    echo 'SLURM JOBS MUST BE RUN FROM "RL4LMs/slurms" FOR THIS PROJECT'
+    echo 'SLURM JOBS MUST BE RUN FROM "EE-638-WSI-Project/slurms" FOR THIS PROJECT'
     return -1
 fi
 
@@ -27,8 +26,8 @@ fi
 module purge
 module load conda
 eval "$(conda shell.bash hook)"
-conda activate nego_rl
+conda activate ee638
 
 # run
 echo "TRAINING T5 NEXT UTTERANCE MODEL - INPUT: NOP"
-CUDA_LAUNCH_BLOCKING=1 python3 scripts/training/train_text_generation.py --config_path scripts/training/task_configs/ian_experiments/t5_no_opt_pref.yml --base_path_to_store_results ../logs/ --experiment_name ian_t5_no_opt_pref
+python3 SCRIPT_NAME_HERE.py
