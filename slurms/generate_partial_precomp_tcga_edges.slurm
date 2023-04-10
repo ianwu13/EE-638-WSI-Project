@@ -24,4 +24,4 @@ echo ""
 echo "GENERATING GRAPH EDGES FOR TCGA PRECOMPUTED FEATURES"
 echo ""
 
-python3 get_edges.py --dataset=TCGA-lung-default
+python3 get_edges_partial.py --dataset=TCGA-lung-default

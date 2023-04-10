@@ -24,4 +24,4 @@ echo ""
 echo "GENERATING GRAPH EDGES FOR CAMELYON16 PRECOMPUTED FEATURES"
 echo ""
 
-python3 get_edges.py --dataset=Camelyon16
+python3 get_edges_partial.py --dataset=Camelyon16
