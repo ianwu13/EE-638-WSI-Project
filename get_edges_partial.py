@@ -52,8 +52,6 @@ def main():
     parser.add_argument('--feats_size', default=512, type=int, help='Dimension of the feature size [512]')
     parser.add_argument('--dataset', default='TCGA-lung-default', type=str, help='Dataset folder name')
     args = parser.parse_args()
-    gpu_ids = tuple(args.gpu_index)
-    os.environ['CUDA_VISIBLE_DEVICES']=','.join(str(x) for x in gpu_ids)
     
     # DATASET
     if args.dataset == 'TCGA-lung-default':
