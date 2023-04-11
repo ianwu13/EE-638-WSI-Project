@@ -9,11 +9,11 @@ from sklearn.utils import shuffle
 def get_ids_and_edges(csv_file_df, args):
     if args.dataset == 'TCGA-lung-default':
         feats_csv_path = 'datasets/tcga-dataset/tcga_lung_data_feats/' + csv_file_df.iloc[0].split('/')[1] + '.csv'
-        edges_csv_path = 'datasets/tcga-dataset/tcga_lung_data_edges/edges_' + csv_file_df.iloc[0].split('/')[1] + '.csv'
+        edges_csv_path = 'datasets/tcga-dataset/tcga_lung_data_edges_partial/edges_' + csv_file_df.iloc[0].split('/')[1] + '.csv'
     else:
         feats_csv_path = csv_file_df.iloc[0]
         splt = feats_csv_path.split('/')
-        edges_csv_path = '/'.join(splt[:-2]) + '/edges/edges_' + splt[-1]
+        edges_csv_path = '/'.join(splt[:-2]) + '/edges_partial/edgess_' + splt[-1]
 
     print()
     print(feats_csv_path)
