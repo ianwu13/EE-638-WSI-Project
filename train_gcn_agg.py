@@ -10,6 +10,7 @@ import dgl
 import sys, argparse, os, copy, itertools, glob, datetime
 import pandas as pd
 import numpy as np
+from tqdm import tqdm
 from sklearn.utils import shuffle
 from sklearn.metrics import roc_curve, roc_auc_score
 
@@ -280,7 +281,7 @@ def main():
     save_path = os.path.join('weights', datetime.date.today().strftime("%m%d%Y"))
     os.makedirs(save_path, exist_ok=True)
     run = len(glob.glob(os.path.join(save_path, '*.pth')))
-    for epoch in range(1, args.num_epochs):
+    for epoch in tqdm(range(1, args.num_epochs)):
         train_path = shuffle(train_path).reset_index(drop=True)
         test_path = shuffle(test_path).reset_index(drop=True)
 
