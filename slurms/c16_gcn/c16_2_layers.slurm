@@ -1,10 +1,8 @@
 #!/bin/bash
 #SBATCH --account=ajiteshs_1045
-#SBATCH --partition=gpu
-#SBATCH --gres=gpu:a100:2
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=16
-#SBATCH --time=12:00:00
+#SBATCH --time=24:00:00
 
 # Change to proper directory
 if [[ "$PWD" =~ "EE-638-WSI-Project/slurms/c16_gcn" ]]
