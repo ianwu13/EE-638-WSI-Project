@@ -65,14 +65,12 @@ def dropout_patches(feats, p):
 def train(train_df, milnet, criterion, optimizer, args):
     # Set model to training mode
     milnet.train()
-    '''
+
     if torch.cuda.is_available():
         Tensor = torch.cuda.FloatTensor
     else:
         Tensor = torch.FloatTensor
-    '''
-    Tensor = torch.FloatTensor
-
+    
     total_loss = 0
     Tensor = torch.cuda.FloatTensor
     for i in range(len(train_df)):
@@ -83,9 +81,9 @@ def train(train_df, milnet, criterion, optimizer, args):
         # feats = dropout_patches(feats, args.dropout_patch)
 
         # Variable --> torch.autograd
-        bag_label = Variable(Tensor([label]))
+        bag_label = Variable(torch.FloatTensor([label]))
         # GPU: bag_label = Variable(torch.cuda.FloatTensor([label]))
-        bag_graph = graph # .to('cuda:0')
+        bag_graph = graph.to('cuda:0')
         # GPU: bag_graph = Variable(feats.to('cuda:0'))
         bag_feats = Variable(Tensor([feats]))
         bag_feats = bag_feats.view(-1, args.feats_size)
@@ -135,13 +133,11 @@ def multi_label_roc(labels, predictions, num_classes, pos_label=1):
 
 def test(test_df, milnet, criterion, args):
     milnet.eval()
-    '''
+    
     if torch.cuda.is_available():
         Tensor = torch.cuda.FloatTensor
     else:
         Tensor = torch.FloatTensor
-    '''
-    Tensor = torch.FloatTensor
 
     total_loss = 0
     test_labels = []
