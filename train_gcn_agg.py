@@ -83,7 +83,7 @@ def train(train_df, milnet, criterion, optimizer, args):
         # Variable --> torch.autograd
         bag_label = Variable(torch.FloatTensor([label]))
         # GPU: bag_label = Variable(torch.cuda.FloatTensor([label]))
-        bag_graph = graph
+        bag_graph = graph.to('cuda:0')
         # GPU: bag_graph = Variable(feats.to('cuda:0'))
         bag_feats = Variable(Tensor([feats]))
         bag_feats = bag_feats.view(-1, args.feats_size)
@@ -152,7 +152,7 @@ def test(test_df, milnet, criterion, args):
             # Variable --> torch.autograd
             bag_label = Variable(torch.FloatTensor([label]))
             # GPU: bag_label = Variable(torch.cuda.FloatTensor([label]))
-            bag_graph = graph
+            bag_graph = graph.to('cuda:0')
             # GPU: bag_graph = Variable(feats.to('cuda:0'))
             bag_feats = Variable(Tensor([feats]))
             bag_feats = bag_feats.view(-1, args.feats_size)
