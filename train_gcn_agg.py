@@ -74,7 +74,6 @@ def train(train_df, milnet, criterion, optimizer, args):
     Tensor = torch.FloatTensor
 
     total_loss = 0
-    Tensor = torch.cuda.FloatTensor
     for i in range(len(train_df)):
         optimizer.zero_grad()
         label, graph, feats = get_bag_feats(train_df.iloc[i], args)  # Feats is a graph
@@ -230,27 +229,27 @@ def main():
         import graph_dsmil as mil
 
         # TODO: MAKE MATCH ARGS FOR "graph_dsmil.py"
-        graph_module = mil.GraphModule(layer_type=args.gcn_layer_type, n_layers=args.n_gcn_layers).cuda()
+        graph_module = mil.GraphModule(layer_type=args.gcn_layer_type, n_layers=args.n_gcn_layers)  #  .cuda()
 
         if args.agg_type == 'dsmil':
-            i_classifier = mil.FCLayer(in_size=args.feats_size, out_size=args.num_classes).cuda()
-            b_classifier = mil.BClassifier(input_size=args.feats_size, output_class=args.num_classes, dropout_v=args.dropout_node, nonlinear=args.non_linearity).cuda()
-            agg_module = mil.DSMILAgg(i_classifier, b_classifier).cuda()
+            i_classifier = mil.FCLayer(in_size=args.feats_size, out_size=args.num_classes)  #  .cuda()
+            b_classifier = mil.BClassifier(input_size=args.feats_size, output_class=args.num_classes, dropout_v=args.dropout_node, nonlinear=args.non_linearity)  #  .cuda()
+            agg_module = mil.DSMILAgg(i_classifier, b_classifier)  #  .cuda()
         elif args.agg_type == 'GlobalAttentionPooling':
             # TODO: IMPLEMENT
             raise NotImplementedError('GlobalAttentionPooling aggregator is not yet implemented')
-            agg_module = mil.GraphAttnAgg().cuda()
+            agg_module = mil.GraphAttnAgg()  #  .cuda()
         else:
             raise ValueError('--agg_type must be "dsmil" or "GlobalAttentionPooling"')
 
-        milnet = mil.GRAPH_MILNet(graph_module, agg_module).cuda()
+        milnet = mil.GRAPH_MILNet(graph_module, agg_module)  #  .cuda()
 
     elif args.model == 'dsmil':
         import dsmil as mil
 
-        i_classifier = mil.FCLayer(in_size=args.feats_size, out_size=args.num_classes).cuda()
-        b_classifier = mil.BClassifier(input_size=args.feats_size, output_class=args.num_classes, dropout_v=args.dropout_node, nonlinear=args.non_linearity).cuda()
-        milnet = mil.MILNet(i_classifier, b_classifier).cuda()
+        i_classifier = mil.FCLayer(in_size=args.feats_size, out_size=args.num_classes)  #  .cuda()
+        b_classifier = mil.BClassifier(input_size=args.feats_size, output_class=args.num_classes, dropout_v=args.dropout_node, nonlinear=args.non_linearity)  #  .cuda()
+        milnet = mil.MILNet(i_classifier, b_classifier)  #  .cuda()
 
         state_dict_weights = torch.load('init.pth')
         try:
