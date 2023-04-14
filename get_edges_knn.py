@@ -19,8 +19,9 @@ def get_ids_and_edges(csv_file_df, args):
         edges_csv_paths = [('/'.join(splt[:-2]) + f'/edges_{n}/edges_' + splt[-1]) for n in n_neigh_list]
 
     for dir in edges_csv_paths:
-        if not os.path.exists(dir):
-            os.mkdir(dir)
+        dir_tmp = '/'.join(dir.split('/')[:-1])
+        if not os.path.exists(dir_tmp):
+            os.mkdir(dir_tmp)
 
     print()
     print(feats_csv_path)
