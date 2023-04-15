@@ -12,7 +12,7 @@ def get_ids_and_edges(csv_file_df, args):
 
     if args.dataset == 'TCGA-lung-default':
         feats_csv_path = 'datasets/tcga-dataset/tcga_lung_data_feats/' + csv_file_df.iloc[0].split('/')[1] + '.csv'
-        edges_csv_paths = [('datasets/tcga-dataset/tcga_lung_data_edges_{n}/edges_' + csv_file_df.iloc[0].split('/')[1] + '.csv') for n in n_neigh_list]
+        edges_csv_paths = [(f'datasets/tcga-dataset/tcga_lung_data_edges_{n}/edges_' + csv_file_df.iloc[0].split('/')[1] + '.csv') for n in n_neigh_list]
     else:
         feats_csv_path = csv_file_df.iloc[0]
         splt = feats_csv_path.split('/')
@@ -41,7 +41,9 @@ def get_ids_and_edges(csv_file_df, args):
 
     # Doing 2, 4, 8, 16, 32 neighbors
     print('Fitting nearest neighbors')
-    nbrs = NearestNeighbors(n_neighbors=32, algorithm='ball_tree').fit(feats)
+    # Make sure n_neigh is not larger than num samples
+    calc_neigh_n = min(len(ids), 32)
+    nbrs = NearestNeighbors(n_neighbors=calc_neigh_n, algorithm='ball_tree').fit(feats)
 
     src = {n:deque() for n in n_neigh_list}
     dst = {n:deque() for n in n_neigh_list}
