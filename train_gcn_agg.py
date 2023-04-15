@@ -7,7 +7,7 @@ from torchvision import transforms
 
 import dgl
 
-import sys, argparse, os, copy, itertools, glob, datetime, random
+import sys, argparse, os, copy, itertools, glob, datetime, random, warnings
 import pandas as pd
 import numpy as np
 from tqdm import tqdm
@@ -201,6 +201,9 @@ def test(test_df, milnet, edges_per_node, criterion, args):
     return total_loss / len(test_df), avg_score, auc_value, thresholds_optimal
 
 def main():
+    # Surpress warnings
+    warnings.filterwarnings('ignore')
+
     # ARGUMENTS
     parser = argparse.ArgumentParser(description='Train DSMIL on 20x patch features learned by SimCLR')
     parser.add_argument('--num_classes', default=2, type=int, help='Number of output classes [2]')
