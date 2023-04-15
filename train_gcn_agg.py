@@ -7,7 +7,7 @@ from torchvision import transforms
 
 import dgl
 
-import sys, argparse, os, copy, itertools, glob, datetime
+import sys, argparse, os, copy, itertools, glob, datetime, random
 import pandas as pd
 import numpy as np
 from tqdm import tqdm
@@ -15,14 +15,14 @@ from sklearn.utils import shuffle
 from sklearn.metrics import roc_curve, roc_auc_score
 
 
-def get_bag_feats(csv_file_df, args):
+def get_bag_feats(csv_file_df, edges_per_node, args):
     if args.dataset == 'TCGA-lung-default':
         feats_csv_path = 'datasets/tcga-dataset/tcga_lung_data_feats/' + csv_file_df.iloc[0].split('/')[1] + '.csv'
-        edges_csv_path = 'datasets/tcga-dataset/tcga_lung_data_edges_partial/edges_' + csv_file_df.iloc[0].split('/')[1] + '.csv'
+        edges_csv_path = f'datasets/tcga-dataset/tcga_lung_data_edges_{edges_per_node}/edges_' + csv_file_df.iloc[0].split('/')[1] + '.csv'
     else:
         feats_csv_path = csv_file_df.iloc[0]
         splt = feats_csv_path.split('/')
-        edges_csv_path = '/'.join(splt[:-2]) + '/edges_partial/edges_' + splt[-1]
+        edges_csv_path = '/'.join(splt[:-2]) + f'/edges_{edges_per_node}/edges_' + splt[-1]
 
     # Get label for sample
     label = np.zeros(args.num_classes)
@@ -63,7 +63,7 @@ def dropout_patches(feats, p):
     sampled_feats = np.concatenate((sampled_feats, pad_feats), axis=0)
     return sampled_feats
 
-def train(train_df, milnet, criterion, optimizer, args):
+def train(train_df, milnet, edges_per_node, criterion, optimizer, args):
     # Set model to training mode
     milnet.train()
     '''
@@ -77,7 +77,7 @@ def train(train_df, milnet, criterion, optimizer, args):
     total_loss = 0
     for i in range(len(train_df)):
         optimizer.zero_grad()
-        label, graph, feats = get_bag_feats(train_df.iloc[i], args)  # Feats is a graph
+        label, graph, feats = get_bag_feats(train_df.iloc[i], edges_per_node, args)  # Feats is a graph
 
         # TODO?: DROPOUT NOT IMPLEMENTED YET
         # feats = dropout_patches(feats, args.dropout_patch)
@@ -133,7 +133,7 @@ def multi_label_roc(labels, predictions, num_classes, pos_label=1):
         thresholds_optimal.append(threshold_optimal)
     return aucs, thresholds, thresholds_optimal
 
-def test(test_df, milnet, criterion, args):
+def test(test_df, milnet, edges_per_node, criterion, args):
     milnet.eval()
     '''
     if torch.cuda.is_available():
@@ -148,7 +148,7 @@ def test(test_df, milnet, criterion, args):
     test_predictions = []
     with torch.no_grad():
         for i in range(len(test_df)):
-            label, graph, feats = get_bag_feats(test_df.iloc[i], args)  # Feats is a graph
+            label, graph, feats = get_bag_feats(test_df.iloc[i], edges_per_node, args)  # Feats is a graph
 
             # TODO?: DROPOUT NOT IMPLEMENTED YET
             # feats = dropout_patches(feats, args.dropout_patch)
@@ -215,6 +215,7 @@ def main():
 
     # Graph conv arguments
     parser.add_argument('--model', default='graph_dsmil', type=str, help='MIL model [dsmil|graph_dsmil]')
+    parser.add_argument('--edges_per_node', default=4, type=int, help='Number of edges for each node found through KNN')
     parser.add_argument('--gcn_layer_type', default='GraphConv', type=str, help='Type of GCN layer to use in model [GraphConv|GATConv|SAGEConv]')
     parser.add_argument('--n_gcn_layers', default=1, type=int, help='Number of GCN (or other graph type) layers to apply')
     parser.add_argument('--agg_type', default='dsmil', type=str, help='Aggregator type to use [dsmil|GlobalAttentionPooling]')
@@ -281,15 +282,17 @@ def main():
     save_path = os.path.join('weights', datetime.date.today().strftime("%m%d%Y"))
     os.makedirs(save_path, exist_ok=True)
     run = len(glob.glob(os.path.join(save_path, '*.pth')))
+    # Random ID needed in case jobs are run at the same time
+    rand_id = random.randint(0, 5000)
     for epoch in tqdm(range(1, args.num_epochs)):
         train_path = shuffle(train_path).reset_index(drop=True)
         test_path = shuffle(test_path).reset_index(drop=True)
 
         # Train for 1 epoch
-        train_loss_bag = train(train_path, milnet, criterion, optimizer, args) # iterate all bags
+        train_loss_bag = train(train_path, milnet, args.edges_per_node, criterion, optimizer, args) # iterate all bags
 
         # Evaluate
-        test_loss_bag, avg_score, aucs, thresholds_optimal = test(test_path, milnet, criterion, args)
+        test_loss_bag, avg_score, aucs, thresholds_optimal = test(test_path, milnet, args.edges_per_node, criterion, args)
         if args.dataset.startswith('TCGA-lung'):
             print('\r Epoch [%d/%d] train loss: %.4f test loss: %.4f, average score: %.4f, auc_LUAD: %.4f, auc_LUSC: %.4f' % 
                   (epoch, args.num_epochs, train_loss_bag, test_loss_bag, avg_score, aucs[0], aucs[1]))
@@ -303,14 +306,15 @@ def main():
         current_score = (sum(aucs) + avg_score)/2
         if current_score >= best_score:
             best_score = current_score
-            save_name = os.path.join(save_path, str(run+1)+'.pth')
+            save_name = os.path.join(save_path, str(run+1)+'_'+str(rand_id)+'.pth')
             torch.save(milnet.state_dict(), save_name)
             if args.dataset.startswith('TCGA-lung'):
                 print('Best model saved at: ' + save_name + ' Best thresholds: LUAD %.4f, LUSC %.4f' % (thresholds_optimal[0], thresholds_optimal[1]))
             else:
                 print('Best model saved at: ' + save_name)
                 print('Best thresholds ===>>> '+ '|'.join('class-{}>>{}'.format(*k) for k in enumerate(thresholds_optimal)))
-            
+
+    print('COMPLETED')       
 
 if __name__ == '__main__':
     main()
