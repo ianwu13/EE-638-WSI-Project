@@ -52,6 +52,9 @@ def get_bag_feats(csv_file_df, edges_per_node, args):
         data = torch.tensor(node_df[col].to_numpy())
         graph.ndata[col] = data
 
+    # Add self loops
+    graph = dgl.add_self_loop(graph)
+
     return label, graph, feats
 
 # TODO?: MAKE WORK FOR GRAPH
