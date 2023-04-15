@@ -24,4 +24,4 @@ echo ""
 echo "GENERATING GRAPH EDGES FOR TCGA PRECOMPUTED FEATURES"
 echo ""
 
-python3 get_edges_knn.py --dataset=TCGA-lung-default --start=780 --end=1050
+python3 get_edges_knn.py --dataset=TCGA-lung-default --start=1040 --end=1050
