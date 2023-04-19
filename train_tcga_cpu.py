@@ -160,7 +160,7 @@ def main():
     b_classifier = mil.BClassifier(input_size=args.feats_size, output_class=args.num_classes, dropout_v=args.dropout_node, nonlinear=args.non_linearity)
     milnet = mil.MILNet(i_classifier, b_classifier)
     if args.model == 'dsmil':
-        state_dict_weights = torch.load('init.pth')
+        state_dict_weights = torch.load('init.pth', map_location='cpu')
         try:
             milnet.load_state_dict(state_dict_weights, strict=False)
         except:
