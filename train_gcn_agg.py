@@ -226,7 +226,7 @@ def main():
     parser.add_argument('--n_gcn_layers', default=1, type=int, help='Number of GCN (or other graph type) layers to apply')
     parser.add_argument('--agg_type', default='dsmil', type=str, help='Aggregator type to use [dsmil|GlobalAttentionPooling]')
 
-    # python3 TMP_train_gcn_agg.py --dataset=Camelyon16 --num_epochs=2 --model=graph_dsmil --gcn_layer_type=GraphConv --n_gcn_layers=1 --agg_type=dsmil
+    # python3 train_gcn_agg.py --dataset=Camelyon16 --num_epochs=2 --edges_per_node=2 --model=graph_dsmil --gcn_layer_type=GraphConv --n_gcn_layers=1 --agg_type=GlobalAttentionPooling
 
     args = parser.parse_args()
     gpu_ids = tuple(args.gpu_index)
@@ -244,9 +244,7 @@ def main():
             b_classifier = mil.BClassifier(input_size=args.feats_size, output_class=args.num_classes, dropout_v=args.dropout_node, nonlinear=args.non_linearity)  #  .cuda()
             agg_module = mil.DSMILAgg(i_classifier, b_classifier)  #  .cuda()
         elif args.agg_type == 'GlobalAttentionPooling':
-            # TODO: IMPLEMENT
-            raise NotImplementedError('GlobalAttentionPooling aggregator is not yet implemented')
-            agg_module = mil.GraphAttnAgg()  #  .cuda()
+            agg_module = mil.GraphAttnAgg(input_size=args.feats_size, output_class=args.num_classes)  #  .cuda()
         else:
             raise ValueError('--agg_type must be "dsmil" or "GlobalAttentionPooling"')
 
@@ -259,7 +257,7 @@ def main():
         b_classifier = mil.BClassifier(input_size=args.feats_size, output_class=args.num_classes, dropout_v=args.dropout_node, nonlinear=args.non_linearity)  #  .cuda()
         milnet = mil.MILNet(i_classifier, b_classifier)  #  .cuda()
 
-        state_dict_weights = torch.load('init.pth')
+        state_dict_weights = torch.load('init.pth', map_location='cpu')
         try:
             milnet.load_state_dict(state_dict_weights, strict=False)
         except:
