@@ -18,7 +18,7 @@ def get_bag_feats(csv_file_df, args):
         feats_csv_path = 'datasets/tcga-dataset/tcga_lung_data_feats/' + csv_file_df.iloc[0].split('/')[1] + '.csv'
     else:
         feats_csv_path = csv_file_df.iloc[0]
-    df = pd.read_csv(feats_csv_path)
+    df = pd.read_csv(feats_csv_path, index_col=0)
     feats = shuffle(df).reset_index(drop=True)
     feats = feats.to_numpy()
     label = np.zeros(args.num_classes)
