@@ -20,6 +20,6 @@ echo ""
 
 # TCGA-lung-default
 # Camelyon16
-python3 train_gcn_agg.py --dataset=Camelyon16 --num_classes=1 --num_epochs=100 --model=dsmil
+python3 train_tcga_cpu.py --dataset=Camelyon16 --num_classes=1 --num_epochs=100
 
 echo "DONE"
