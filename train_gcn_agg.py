@@ -15,7 +15,24 @@ from sklearn.utils import shuffle
 from sklearn.metrics import roc_curve, roc_auc_score
 
 
-def get_bag_feats(csv_file_df, edges_per_node, args):
+def get_bag_feats(csv_file_df, args):
+    if args.dataset == 'TCGA-lung-default':
+        feats_csv_path = 'datasets/tcga-dataset/tcga_lung_data_feats/' + csv_file_df.iloc[0].split('/')[1] + '.csv'
+    else:
+        feats_csv_path = csv_file_df.iloc[0]
+    df = pd.read_csv(feats_csv_path)
+    feats = shuffle(df).reset_index(drop=True)
+    feats = feats.to_numpy()
+    label = np.zeros(args.num_classes)
+    if args.num_classes==1:
+        label[0] = csv_file_df.iloc[1]
+    else:
+        if int(csv_file_df.iloc[1])<=(len(label)-1):
+            label[int(csv_file_df.iloc[1])] = 1
+        
+    return label, feats
+
+def get_bag_feats_graph(csv_file_df, edges_per_node, args):
     if args.dataset == 'TCGA-lung-default':
         feats_csv_path = 'datasets/tcga-dataset/tcga_lung_data_feats/' + csv_file_df.iloc[0].split('/')[1] + '.csv'
         edges_csv_path = f'datasets/tcga-dataset/tcga_lung_data_edges_{edges_per_node}/edges_' + csv_file_df.iloc[0].split('/')[1] + '.csv'
@@ -57,15 +74,6 @@ def get_bag_feats(csv_file_df, edges_per_node, args):
 
     return label, graph, feats
 
-# TODO?: MAKE WORK FOR GRAPH
-def dropout_patches(feats, p):
-    idx = np.random.choice(np.arange(feats.shape[0]), int(feats.shape[0]*(1-p)), replace=False)
-    sampled_feats = np.take(feats, idx, axis=0)
-    pad_idx = np.random.choice(np.arange(sampled_feats.shape[0]), int(feats.shape[0]*p), replace=False)
-    pad_feats = np.take(sampled_feats, pad_idx, axis=0)
-    sampled_feats = np.concatenate((sampled_feats, pad_feats), axis=0)
-    return sampled_feats
-
 def train(train_df, milnet, edges_per_node, criterion, optimizer, args):
     # Set model to training mode
     milnet.train()
@@ -80,23 +88,31 @@ def train(train_df, milnet, edges_per_node, criterion, optimizer, args):
     total_loss = 0
     for i in range(len(train_df)):
         optimizer.zero_grad()
-        label, graph, feats = get_bag_feats(train_df.iloc[i], edges_per_node, args)  # Feats is a graph
+        if args.model == 'graph_dsmil':
+            label, graph, feats = get_bag_feats_graph(train_df.iloc[i], edges_per_node, args)  # Feats is a graph
 
-        # TODO?: DROPOUT NOT IMPLEMENTED YET
-        # feats = dropout_patches(feats, args.dropout_patch)
+            # TODO?: DROPOUT NOT IMPLEMENTED YET
+            # feats = dropout_patches(feats, args.dropout_patch)
 
-        # Variable --> torch.autograd
-        bag_label = Variable(Tensor([label]))
-        # GPU: bag_label = Variable(torch.cuda.FloatTensor([label]))
-        bag_graph = graph # .to('cuda:0')
-        # GPU: bag_graph = Variable(feats.to('cuda:0'))
-        bag_feats = Variable(Tensor([feats]))
-        bag_feats = bag_feats.view(-1, args.feats_size)
-        
-        # TODO: NOT SURE WHAT THIS DOES: bag_graph = bag_graph.view(-1, args.feats_size)
+            # Variable --> torch.autograd
+            bag_label = Variable(Tensor([label]))
+            # GPU: bag_label = Variable(torch.cuda.FloatTensor([label]))
+            bag_graph = graph # .to('cuda:0')
+            # GPU: bag_graph = Variable(feats.to('cuda:0'))
+            bag_feats = Variable(Tensor([feats]))
+            bag_feats = bag_feats.view(-1, args.feats_size)
+            
+            # TODO: NOT SURE WHAT THIS DOES: bag_graph = bag_graph.view(-1, args.feats_size)
 
-        # TODO: UPDATE "graph_dsmil.py" to include graph stuff
-        ins_prediction, bag_prediction, _, _ = milnet(bag_graph, bag_feats)
+            # TODO: UPDATE "graph_dsmil.py" to include graph stuff
+            ins_prediction, bag_prediction, _, _ = milnet(bag_graph, bag_feats)
+        else:
+            label, feats = get_bag_feats(train_df.iloc[i], args)
+            # feats = dropout_patches(feats, args.dropout_patch)
+            bag_label = Variable(Tensor([label]))
+            bag_feats = Variable(Tensor([feats]))
+            bag_feats = bag_feats.view(-1, args.feats_size)
+            ins_prediction, bag_prediction, _, _ = milnet(bag_feats)
 
         max_prediction, _ = torch.max(ins_prediction, 0)        
         bag_loss = criterion(bag_prediction.view(1, -1), bag_label.view(1, -1))
@@ -151,23 +167,32 @@ def test(test_df, milnet, edges_per_node, criterion, args):
     test_predictions = []
     with torch.no_grad():
         for i in range(len(test_df)):
-            label, graph, feats = get_bag_feats(test_df.iloc[i], edges_per_node, args)  # Feats is a graph
+            if args.model == 'graph_dsmil':
+                label, graph, feats = get_bag_feats_graph(test_df.iloc[i], edges_per_node, args)  # Feats is a graph
 
-            # TODO?: DROPOUT NOT IMPLEMENTED YET
-            # feats = dropout_patches(feats, args.dropout_patch)
+                # TODO?: DROPOUT NOT IMPLEMENTED YET
+                # feats = dropout_patches(feats, args.dropout_patch)
 
-            # Variable --> torch.autograd
-            bag_label = Variable(torch.FloatTensor([label]))
-            # GPU: bag_label = Variable(torch.cuda.FloatTensor([label]))
-            bag_graph = graph  # .to('cuda:0')
-            # GPU: bag_graph = Variable(feats.to('cuda:0'))
-            bag_feats = Variable(Tensor([feats]))
-            bag_feats = bag_feats.view(-1, args.feats_size)
-            
-            # TODO: NOT SURE WHAT THIS DOES: bag_graph = bag_graph.view(-1, args.feats_size)
+                # Variable --> torch.autograd
+                bag_label = Variable(torch.FloatTensor([label]))
+                # GPU: bag_label = Variable(torch.cuda.FloatTensor([label]))
+                bag_graph = graph  # .to('cuda:0')
+                # GPU: bag_graph = Variable(feats.to('cuda:0'))
+                bag_feats = Variable(Tensor([feats]))
+                bag_feats = bag_feats.view(-1, args.feats_size)
+                
+                # TODO: NOT SURE WHAT THIS DOES: bag_graph = bag_graph.view(-1, args.feats_size)
 
-            # TODO: UPDATE "graph_dsmil.py" to include graph stuff
-            ins_prediction, bag_prediction, _, _ = milnet(bag_graph, bag_feats)
+                # TODO: UPDATE "graph_dsmil.py" to include graph stuff
+                ins_prediction, bag_prediction, _, _ = milnet(bag_graph, bag_feats)
+            else:
+                label, feats = get_bag_feats(train_df.iloc[i], args)
+                # feats = dropout_patches(feats, args.dropout_patch)
+                bag_label = Variable(Tensor([label]))
+                bag_feats = Variable(Tensor([feats]))
+                bag_feats = bag_feats.view(-1, args.feats_size)
+                ins_prediction, bag_prediction, _, _ = milnet(bag_feats)
+
             max_prediction, _ = torch.max(ins_prediction, 0)  
             bag_loss = criterion(bag_prediction.view(1, -1), bag_label.view(1, -1))
             max_loss = criterion(max_prediction.view(1, -1), bag_label.view(1, -1))
