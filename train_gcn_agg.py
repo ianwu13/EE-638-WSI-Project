@@ -223,7 +223,7 @@ def test(test_df, milnet, edges_per_node, criterion, args):
         bag_score = np.array_equal(test_labels[i], test_predictions[i]) + bag_score         
     avg_score = bag_score / len(test_df)
     
-    return total_loss / len(test_df), avg_score, auc_value, thresholds_optimal
+    return total_loss / len(test_df), avg_score, auc_value, thresholds_optimal, test_labels, test_predictions
 
 def main():
     # Surpress warnings
@@ -321,7 +321,7 @@ def main():
         train_loss_bag = train(train_path, milnet, args.edges_per_node, criterion, optimizer, args) # iterate all bags
 
         # Evaluate
-        test_loss_bag, avg_score, aucs, thresholds_optimal = test(test_path, milnet, args.edges_per_node, criterion, args)
+        test_loss_bag, avg_score, aucs, thresholds_optimal, test_labels, test_predictions = test(test_path, milnet, args.edges_per_node, criterion, args)
         if args.dataset.startswith('TCGA-lung'):
             print('\r Epoch [%d/%d] train loss: %.4f test loss: %.4f, average score: %.4f, auc_LUAD: %.4f, auc_LUSC: %.4f' % 
                   (epoch, args.num_epochs, train_loss_bag, test_loss_bag, avg_score, aucs[0], aucs[1]))
@@ -329,6 +329,12 @@ def main():
             print('\r Epoch [%d/%d] train loss: %.4f test loss: %.4f, average score: %.4f, AUC: ' % 
                   (epoch, args.num_epochs, train_loss_bag, test_loss_bag, avg_score) + '|'.join('class-{}>>{}'.format(*k) for k in enumerate(aucs))) 
         
+        print('TRUE LABELS')
+        print(test_labels)
+        print('PREDICTIONS')
+        print(test_predictions)
+        print('-'*50)
+
         scheduler.step()
         
         # Save results for best model version/epoch

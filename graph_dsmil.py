@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
+from dgl.nn.pytorch.glob import GlobalAttentionPooling
 import dgl.nn.pytorch.conv as dgl_conv
 
 class FCLayer(nn.Module):
@@ -102,24 +103,42 @@ class DSMILAgg(nn.Module):
         
         return classes, prediction_bag, A, B
 
-# TODO
 class GraphAttnAgg(nn.Module):
-    def __init__(self, i_classifier, b_classifier):
+    def __init__(self, input_size, output_class):
         super(GraphAttnAgg, self).__init__()
-        pass
+        self.fc = nn.Sequential(nn.Linear(input_size, output_class))  # Project each patch to a single value
 
-    def forward(self, x):
-        pass
+        self.gate_nn = nn.Linear(input_size, 1)  # the gate layer that maps node feature to scalar
+        self.gap = GlobalAttentionPooling(self.gate_nn)
+        self.pooler = nn.Linear(input_size, output_class)
+
+    def forward(self, graph, feats):
+        classes = self.fc(feats)
+
+        feats = self.gap(graph, feats)  # 512 (or num_feats) long
+
+        pred = self.pooler(feats)
+        
+        return classes, pred, None, None  # Last 2 are unused
 
 class GRAPH_MILNet(nn.Module):
     def __init__(self, graph_module, agg_module):
         super(GRAPH_MILNet, self).__init__()
         self.graph_module = graph_module
+
+        if isinstance(agg_module, GraphAttnAgg):
+            self.agg_type = 'graph'
+        else:
+            self.agg_type = 'bag'
         self.agg_module = agg_module
         
     def forward(self, g, feats):
         feats = self.graph_module(g, feats)
-        classes, prediction_bag, A, B = self.agg_module(feats)
+
+        if self.agg_type == 'graph':
+            classes, prediction_bag, A, B = self.agg_module(g, feats)
+        else:
+            classes, prediction_bag, A, B = self.agg_module(feats)
         
         return classes, prediction_bag, A, B
         
