@@ -330,8 +330,10 @@ def main():
                   (epoch, args.num_epochs, train_loss_bag, test_loss_bag, avg_score) + '|'.join('class-{}>>{}'.format(*k) for k in enumerate(aucs))) 
         
         print('TRUE LABELS')
+        test_labels = [i[0] for i in test_labels]
         print(test_labels)
         print('PREDICTIONS')
+        test_predictions = [i[0] for i in test_predictions]
         print(test_predictions)
         print('-'*50)
 
