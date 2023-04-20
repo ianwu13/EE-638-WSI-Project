@@ -186,7 +186,7 @@ def test(test_df, milnet, edges_per_node, criterion, args):
                 # TODO: UPDATE "graph_dsmil.py" to include graph stuff
                 ins_prediction, bag_prediction, _, _ = milnet(bag_graph, bag_feats)
             else:
-                label, feats = get_bag_feats(train_df.iloc[i], args)
+                label, feats = get_bag_feats(test_df.iloc[i], args)
                 # feats = dropout_patches(feats, args.dropout_patch)
                 bag_label = Variable(Tensor([label]))
                 bag_feats = Variable(Tensor([feats]))
