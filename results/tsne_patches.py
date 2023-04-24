@@ -22,9 +22,9 @@ def tsne_plot(data, out_file):
     tsne_2d_one = tsne_results[:,0]
     tsne_2d_two = tsne_results[:,1]
 
-    out_file.write(tsne_2d_one)
+    out_file.write(str(tsne_2d_one))
     out_file.write('\n')
-    out_file.write(tsne_2d_two)
+    out_file.write(str(tsne_2d_two))
 
 
 dat = pd.read_csv(norm_patch_pth, index_col=0).values
