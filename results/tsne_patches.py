@@ -8,7 +8,7 @@ from sklearn.manifold import TSNE
 
 norm_patch_pth = '../datasets/Camelyon16/0-normal/normal_085.csv'
 norm_tsne_output = './norm_tsne_vals.txt'
-tumo_patch_pth = '../datasets/Camelyon16/1-tumor/tumor_005.csv '
+tumo_patch_pth = '../datasets/Camelyon16/1-tumor/tumor_005.csv'
 tumo_tsne_output = './tumo_tsne_vals.txt'
 
 
@@ -22,9 +22,11 @@ def tsne_plot(data, out_file):
     tsne_2d_one = tsne_results[:,0]
     tsne_2d_two = tsne_results[:,1]
 
-    out_file.write(str(tsne_2d_one))
+    for v in tsne_2d_one:
+        out_file.write(f'{v}, ')
     out_file.write('\n')
-    out_file.write(str(tsne_2d_two))
+    for v in tsne_2d_two:
+        out_file.write(f'{v}, ')
 
 
 dat = pd.read_csv(norm_patch_pth, index_col=0).values
