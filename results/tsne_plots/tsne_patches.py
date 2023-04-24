@@ -29,6 +29,18 @@ def tsne_plot(data, out_file):
         out_file.write(f'{v}, ')
 
 
+for num in [71, 72, 73, 77, 78, 65]:
+    tumo_patch_pth = f'../../datasets/Camelyon16/1-tumor/tumor_0{num}.csv'
+    tumo_tsne_output = f'./{num}.txt'
+    dat = pd.read_csv(tumo_patch_pth, index_col=0).values
+    f = open(tumo_tsne_output, 'w')
+    tsne_plot(dat, f)
+    f.close()
+    print('RAN TSNE FOR NORM WSI')
+
+exit()
+
+# OLD
 tumo_patch_pth = '../../datasets/Camelyon16/1-tumor/tumor_038.csv'
 tumo_tsne_output = './38.txt'
 dat = pd.read_csv(tumo_patch_pth, index_col=0).values
@@ -77,9 +89,6 @@ tsne_plot(dat, f)
 f.close()
 print('RAN TSNE FOR NORM WSI')
 
-exit()
-
-# OLD
 dat = pd.read_csv(norm_patch_pth, index_col=0).values
 f = open(norm_tsne_output, 'w')
 tsne_plot(dat, f)
