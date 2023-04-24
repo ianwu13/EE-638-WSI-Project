@@ -15,7 +15,7 @@ tumo_tsne_output = './tumo_tsne_vals.txt'
 def tsne_plot(data, out_file):
     time_start = time.time()
     tsne = TSNE(n_components=2, verbose=1, perplexity=40, n_iter=300)
-    tsne_results = tsne.fit_transform(data_subset)
+    tsne_results = tsne.fit_transform(data)
 
     print('t-SNE done! Time elapsed: {} seconds'.format(time.time()-time_start))
     
